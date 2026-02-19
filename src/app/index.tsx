@@ -1,53 +1,147 @@
+import { AnimatedLogoSvg } from "@/components/animated-logo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as Haptics from "expo-haptics";
+import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
-import Animated, { interpolate, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { interpolate, useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
 const BACK_LOGO_SIZE = 108;
 const FRONT_LOGO_SIZE = 116;
 
-const INITIAL_BACK_LOGO_ROTATION = 0.12
+const INITIAL_BACK_LOGO_ROTATION = 0.15
 const INITIAL_FRONT_LOGO_ROTATION = 0.12
 
-const triggerHaptic = () => {
+const HINT_MOVING_AREA = 30;
+
+let directionState: 'idle' | 'unlocked' | 'locked' = 'idle'
+
+function triggerReleaseHaptic () {
+  directionState = 'idle'
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
+}
+
+function triggerUnlockHaptic () {
+  if (directionState === 'unlocked'){
+    return
+  }
+
+  directionState = 'unlocked';
+  
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
 }
 
-export default function TabOneScreen() {
-  const panX = useSharedValue(0)
+function triggerLockHaptic () {
+  if (directionState === 'idle' || directionState === 'locked'){
+    return
+  }
 
-  const panGesture = Gesture.Pan()
+  directionState = 'locked';
+  
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
+}
+
+function triggerIntroHaptic() {
+  Haptics.selectionAsync();
+}
+
+export default function TabOneScreen() {
+  const gestureProgress = useSharedValue(0);
+  const uiProgress = useSharedValue(0);
+
+  const titleIntro = useSharedValue(0)
+  const descriptionIntro = useSharedValue(0)
+  const logosIntro = useSharedValue(0)
+
+  const handlePanGesture = Gesture.Pan()
     .onUpdate((event) => {
-      panX.value = event.translationX / 144
+      const translationX = Math.min(event.translationX / 144, 1);
+
+      if (translationX >= 1) {
+        scheduleOnRN(triggerUnlockHaptic)
+      }else {
+        scheduleOnRN(triggerLockHaptic)
+      }
+
+      gestureProgress.value = translationX;
+      uiProgress.value = translationX;
     })
     .onEnd(() => {
-      panX.value = withSpring(0, {
-        damping: 10,
+      gestureProgress.value = withSpring(0, {
+        damping: 14,
         stiffness: 250,
         mass: 1,
         velocity: 6,
       });
+
+      if (gestureProgress.value >= 1) {
+        uiProgress.value = 1;
+      } else {
+        uiProgress.value = withTiming(0, {
+          duration: 220,
+        });
+      }
       
-      scheduleOnRN(triggerHaptic)
+      scheduleOnRN(triggerReleaseHaptic);
     });
 
-  const backLogoStyles =  useAnimatedStyle(() => {
-    let rotation = interpolate(
-      panX.value,
-      [0, 1],
-      [-INITIAL_BACK_LOGO_ROTATION, -(INITIAL_BACK_LOGO_ROTATION * 1.75 )],
-    );
-
-    if (panX.value < 0){
-      rotation = interpolate(
-        panX.value,
-        [-1, 0],
-        [0, -INITIAL_BACK_LOGO_ROTATION],
-        "clamp"
-      );
+  const titleAnimatedStyle = useAnimatedStyle(() => {
+    return {
+        opacity: titleIntro.value,
+        transform: [
+          { translateY: (1 - titleIntro.value) * 20 }
+        ]
     }
+  });
+
+  const descriptionAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: descriptionIntro.value,
+      transform: [
+        { translateY: (1 - descriptionIntro.value) * 20 }
+      ]
+    }
+  });
+
+  const logoContainerAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: interpolate(
+        titleIntro.value,
+        [0, 0.5],
+        [0, 1],
+        "clamp"
+      ),
+    }
+  });
+
+  const backLogoAnimatedStyle =  useAnimatedStyle(() => {
+    const baseRotation = interpolate(
+      logosIntro.value,
+      [0, 1],
+      [0, -INITIAL_BACK_LOGO_ROTATION]
+    )
+
+    let deltaRotation = 0
+
+    if (gestureProgress.value > 0) {
+      deltaRotation = interpolate(
+        gestureProgress.value,
+        [0, 1],
+        [0, -(INITIAL_BACK_LOGO_ROTATION * 0.5)]
+      )
+    }
+
+    if (gestureProgress.value < 0) {
+      deltaRotation = interpolate(
+        gestureProgress.value,
+        [-1, 0],
+        [INITIAL_BACK_LOGO_ROTATION, 0],
+        "clamp"
+      )
+    }
+
+    const rotation = baseRotation + deltaRotation
 
     const offset = FRONT_LOGO_SIZE / 2
 
@@ -62,22 +156,34 @@ export default function TabOneScreen() {
     }
   });
 
-  const frontLogoStyles = useAnimatedStyle(() => {
-    let rotation = interpolate(
-      panX.value,
+  const frontLogoAnimatedStyle = useAnimatedStyle(() => {
+    const baseRotation = interpolate(
+      logosIntro.value,
       [0, 1],
-      [INITIAL_FRONT_LOGO_ROTATION, INITIAL_FRONT_LOGO_ROTATION * 1.75 ],
-    );
+      [0, INITIAL_FRONT_LOGO_ROTATION]
+    )
 
-    if (panX.value < 0){
-      rotation = interpolate(
-        panX.value,
-        [-1, 0],
-        [0, INITIAL_FRONT_LOGO_ROTATION],
-        "clamp"
-      );
+    let deltaRotation = 0
+
+    if (gestureProgress.value > 0) {
+      deltaRotation = interpolate(
+        gestureProgress.value,
+        [0, 1],
+        [0, INITIAL_FRONT_LOGO_ROTATION * 1.5]
+      )
     }
 
+    if (gestureProgress.value < 0) {
+      deltaRotation = interpolate(
+        gestureProgress.value,
+        [-1, 0],
+        [-INITIAL_FRONT_LOGO_ROTATION, 0],
+        "clamp"
+      )
+    }
+
+    const rotation = baseRotation + deltaRotation
+    
     const offset = FRONT_LOGO_SIZE / 2
 
     return {
@@ -87,41 +193,91 @@ export default function TabOneScreen() {
         { rotateZ: `${rotation}rad` },
         { translateX: -offset },
         { translateY: -offset },
+        { translateY:  "5%" }
       ]
     }
   });
 
-  const hintTransforms = useAnimatedStyle(() => {
+  const hintAnimatedStyle = useAnimatedStyle(() => {
+    const introOffset = interpolate(
+      logosIntro.value,
+      [0, 1],
+      [-HINT_MOVING_AREA, 0],
+    );
+
+    const panOffset = interpolate(
+      gestureProgress.value,
+      [-1, 0, 1],
+      [-HINT_MOVING_AREA, 0, HINT_MOVING_AREA],
+    );
+
     return {
+      opacity: interpolate(
+        logosIntro.value,
+        [0, 0.9],
+        [0, 1]
+      ),
       transform: [
-        {
-          translateX: interpolate(
-            panX.value,
-            [-1, 0, 1],
-            [-35, 0, 35]
-          ) 
-        }
+        { translateX: introOffset + panOffset }
       ],
     }
   });
-  
+
+  useEffect(() => {
+    titleIntro.value = withDelay(
+      150,
+      withSpring(1, {
+        damping: 17,
+        stiffness: 250,
+        mass: 0.7,
+      })
+    );
+
+    descriptionIntro.value = withDelay(
+      400,
+      withSpring(1, {
+        damping: 17,
+        stiffness: 250,
+        mass: 0.7,
+      })
+    );
+
+    const delay = 1200
+
+    const timeout = setTimeout(() => {
+      scheduleOnRN(triggerIntroHaptic)
+
+      logosIntro.value = withSpring(1, {
+        damping: 17,
+        stiffness: 250,
+        mass: 0.7,
+      })
+    }, delay)
+
+    return () => clearTimeout(timeout)
+  }, [])
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <GestureDetector gesture={panGesture}>
-
+      <GestureDetector gesture={handlePanGesture}>
         <View style={styles.container}>
-          <View style={styles.logoContainer}>
-            <Animated.View style={[styles.logoSquare, styles.backLogo, backLogoStyles]} />
-            <Animated.View style={[styles.logoSquare, styles.frontLogo, frontLogoStyles]} />
-          </View>
+          <Animated.View style={[styles.logoContainer, logoContainerAnimatedStyle]}>
+            <Animated.View style={[styles.logoSquare, styles.backLogo, backLogoAnimatedStyle]} />
+            <Animated.View style={[styles.logoSquare, styles.frontLogo, frontLogoAnimatedStyle]}>
+              <AnimatedLogoSvg panX={uiProgress} />
+            </Animated.View>
+          </Animated.View>
 
           <View style={styles.content}>
-            <Text style={styles.title}>Welcome to PVP</Text>
-            <Text style={styles.description}>A delightfully simple todo app that{'\n'}respects your focus and privacy.</Text>
+            <Animated.Text style={[styles.title, titleAnimatedStyle]}>
+              Welcome to PVP
+            </Animated.Text>
+            <Animated.Text style={[styles.description, descriptionAnimatedStyle]}>
+              A delightfully simple todo app that{'\n'}respects your focus and privacy.
+            </Animated.Text>
 
-            <Animated.View style={[styles.hintContainer, hintTransforms]}>
-              <Text style={styles.hint}>Slide to Unlock</Text>
+            <Animated.View style={[styles.hintContainer, hintAnimatedStyle]}>
+              <Text style={styles.hint}>Slide to unlock</Text>
               <FontAwesome name="long-arrow-right" size={16} color="#999999" />
             </Animated.View>
           </View>
@@ -158,7 +314,7 @@ const styles = StyleSheet.create({
     width: FRONT_LOGO_SIZE,
     height: FRONT_LOGO_SIZE,
     borderRadius: 28,
-    backgroundColor: "#f8e5a7",
+    backgroundColor: "#f3ecd7",
     shadowOffset: { width: 2, height: 2 },
     shadowColor: "#000000",
     shadowRadius: 2,
@@ -173,6 +329,8 @@ const styles = StyleSheet.create({
   },
   frontLogo: {
     zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   title: {
     fontSize: 18,
@@ -192,7 +350,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 16,
+    gap: 8,
     marginTop: 18,
   },
   hint: {
