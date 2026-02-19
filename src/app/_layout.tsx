@@ -1,4 +1,4 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import FeatherIcons from '@expo/vector-icons/Feather';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -11,32 +11,31 @@ export { ErrorBoundary } from 'expo-router';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loadingFonts, error] = useFonts({
-    SpaceMono: require('../../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
+	const [loadingFonts, error] = useFonts({
+		...FeatherIcons.font,
+	});
 
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+	useEffect(() => {
+		if (error) throw error;
+	}, [error]);
 
-  useEffect(() => {
-    if (loadingFonts) {
-      SplashScreen.hideAsync();
-    }
-  }, [loadingFonts]);
+	useEffect(() => {
+		if (loadingFonts) {
+			SplashScreen.hideAsync();
+		}
+	}, [loadingFonts]);
 
-  if (!loadingFonts) {
-    return null;
-  }
+	if (!loadingFonts) {
+		return null;
+	}
 
-  return <RootLayoutNav />;
+	return <RootLayoutNav />;
 }
 
 function RootLayoutNav() {
-  return (
-    <ThemeProvider value={DarkTheme}>
-      <Stack screenOptions={{ headerShown: false }} />
-    </ThemeProvider>
-  );
+	return (
+		<ThemeProvider value={DarkTheme}>
+			<Stack screenOptions={{ headerShown: false }} />
+		</ThemeProvider>
+	);
 }
