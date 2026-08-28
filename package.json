@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "twodos-animation",
+  "name": "twodos-onboarding",
   "description": "Twodos app onboarding gesture experiment",
   "main": "expo-router/entry",
   "version": "1.0.0",
@@ -8,11 +8,11 @@
     "name": "Matheus Zanin",
     "url": "https://zanin.dev"
   },
-  "homepage": "https://github.com/MattZ6/twodos-animation",
-  "bugs": "https://github.com/MattZ6/twodos-animation/issues",
+  "homepage": "https://github.com/MattZ6/twodos-onboarding",
+  "bugs": "https://github.com/MattZ6/twodos-onboarding/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/MattZ6/twodos-animation"
+    "url": "https://github.com/MattZ6/twodos-onboarding"
   },
   "contributors": [
     {

@@ -1,11 +1,11 @@
 {
 	"expo": {
-		"name": "twodos-animation",
-		"slug": "twodos-animation",
+		"name": "twodos-onboarding",
+		"slug": "twodos-onboarding",
 		"version": "1.0.0",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
-		"scheme": "twodos-animation",
+		"scheme": "twodos-onboarding",
 		"userInterfaceStyle": "automatic",
 		"ios": {
 			"supportsTablet": true
