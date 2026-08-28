@@ -13,7 +13,7 @@
 		"android": {
 			"adaptiveIcon": {
 				"foregroundImage": "./assets/images/adaptive-icon.png",
-				"backgroundColor": "#ffffff"
+				"backgroundColor": "#000000"
 			},
 			"predictiveBackGestureEnabled": false
 		},
@@ -30,7 +30,7 @@
 				{
 					"image": "./assets/images/splash-icon.png",
 					"resizeMode": "contain",
-					"backgroundColor": "#ffffff"
+					"backgroundColor": "#000000"
 				}
 			],
 			"expo-status-bar",
