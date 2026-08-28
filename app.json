@@ -1,11 +1,11 @@
 {
 	"expo": {
-		"name": "pvp-todos",
-		"slug": "pvp-todos",
+		"name": "twodos-animation",
+		"slug": "twodos-animation",
 		"version": "1.0.0",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
-		"scheme": "pvptodos",
+		"scheme": "twodos-animation",
 		"userInterfaceStyle": "automatic",
 		"ios": {
 			"supportsTablet": true
