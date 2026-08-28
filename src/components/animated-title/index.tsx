@@ -29,7 +29,7 @@ export function AnimatedTitle() {
 
 	return (
 		<Animated.Text key="onboarding.title" style={[styles.title, animatedStyle]}>
-			Welcome to PVP
+			Welcome to Twodos
 		</Animated.Text>
 	);
 }

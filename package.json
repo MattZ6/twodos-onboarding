@@ -1,8 +1,25 @@
 {
   "private": true,
-  "name": "pvp-todos",
+  "name": "twodos-animation",
+  "description": "Twodos app onboarding gesture experiment",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "author": {
+    "name": "Matheus Zanin",
+    "url": "https://zanin.dev"
+  },
+  "homepage": "https://github.com/MattZ6/twodos-animation",
+  "bugs": "https://github.com/MattZ6/twodos-animation/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MattZ6/twodos-animation"
+  },
+  "contributors": [
+    {
+      "name": "Matheus Zanin",
+      "url": "https://zanin.dev"
+    }
+  ],
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
